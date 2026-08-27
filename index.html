@@ -112,6 +112,17 @@
   .settings input[type="range"]{flex:1; accent-color:var(--accent);}
   .settings .slider-val{font-family:ui-monospace,monospace; font-size:12.5px; font-weight:700; min-width:44px; text-align:right;}
 
+  .srb-toggle{display:flex; align-items:center; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
+  .srb-toggle input[type="checkbox"]{width:16px; height:16px; accent-color:var(--accent);}
+  .srb-toggle label{font-size:13px; font-weight:600; cursor:pointer;}
+  .srb-fields{display:flex; flex-wrap:wrap; gap:16px; margin-top:12px;}
+  .srb-fields .field{display:flex; flex-direction:column; gap:5px; min-width:150px; flex:1;}
+  .srb-fields label{font-size:12px; font-weight:600; color:var(--ink-muted);}
+  .srb-fields input[type="number"]{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:7px;
+    padding:8px 10px; font-size:13.5px; color:var(--ink); width:100%; font-family:ui-monospace,monospace;
+  }
+
   /* Read-only display "field" (date, total, rendement) — styled like an input but not editable */
   .readonly-field{
     background:var(--surface-3); border:1px solid var(--line); border-radius:7px;
@@ -298,6 +309,26 @@
         </select>
       </div>
     </div>
+
+    <div class="srb-toggle">
+      <input type="checkbox" id="srbEnabled">
+      <label for="srbEnabled">Inclure les Super Rent Boost (x50)</label>
+    </div>
+    <div class="srb-fields" id="srbFields" style="display:none;">
+      <div class="field">
+        <label for="srbCount">Events par mois</label>
+        <input type="number" id="srbCount" min="0" step="1" value="2">
+      </div>
+      <div class="field">
+        <label for="srbHours">Durée par event (h)</label>
+        <input type="number" id="srbHours" min="0" step="1" value="32">
+      </div>
+    </div>
+    <div class="summary-row" style="grid-template-columns:1fr; margin-top:12px;" id="srbResultRow">
+      <div class="readonly-field" style="border-color:var(--accent); background:var(--accent-soft); display:none;" id="srbResultField">
+        <span class="tag" id="srbResultLabel">Estimation mensuelle réaliste</span><b id="srbResultValue" style="color:var(--accent);">—</b>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -390,6 +421,7 @@ const els = {};
 [
   "hours","hoursVal","badge",
   "rCommon","rRare","rEpic","rLegendary","totalParcels","baseRateDisplay","baseRatePerSec","boostedIncomeDisplay",
+  "srbEnabled","srbFields","srbCount","srbHours","srbResultField","srbResultLabel","srbResultValue",
   "verdictCard","tierGrid"
 ].forEach(id => els[id] = document.getElementById(id));
 
@@ -401,11 +433,15 @@ if(savedSettings.rCommon!==undefined) els.rCommon.value = savedSettings.rCommon;
 if(savedSettings.rRare!==undefined) els.rRare.value = savedSettings.rRare;
 if(savedSettings.rEpic!==undefined) els.rEpic.value = savedSettings.rEpic;
 if(savedSettings.rLegendary!==undefined) els.rLegendary.value = savedSettings.rLegendary;
+if(savedSettings.srbEnabled!==undefined) els.srbEnabled.checked = savedSettings.srbEnabled;
+if(savedSettings.srbCount!==undefined) els.srbCount.value = savedSettings.srbCount;
+if(savedSettings.srbHours!==undefined) els.srbHours.value = savedSettings.srbHours;
 
 function persistSettings(){
   saveSettings({
     hours: els.hours.value, badge: els.badge.value,
-    rCommon: els.rCommon.value, rRare: els.rRare.value, rEpic: els.rEpic.value, rLegendary: els.rLegendary.value
+    rCommon: els.rCommon.value, rRare: els.rRare.value, rEpic: els.rEpic.value, rLegendary: els.rLegendary.value,
+    srbEnabled: els.srbEnabled.checked, srbCount: els.srbCount.value, srbHours: els.srbHours.value
   });
 }
 
@@ -537,6 +573,42 @@ function renderSummary(){
   els.boostedIncomeDisplay.textContent = fmtEUR5(base * mult) + " (x" + mult.toFixed(2) + ")";
 }
 
+// ---- Super Rent Boost estimate (separate from "revenu actuel" — a monthly average, not an instant rate) ----
+const HOURS_PER_MONTH = 720; // 30 days, consistent with RATE (2,592,000s = 30 days)
+
+function computeSRBEstimate(c, hours, badgePct, srbCount, srbHours){
+  const N0 = totalOf(c);
+  if(N0===0) return null;
+  const base0 = baseIncomeOf(c);
+  const tier0 = TIERS[getTierIndex(N0)];
+  const E = Math.min(HOURS_PER_MONTH, Math.max(0, srbCount*srbHours));
+  const normalHours = HOURS_PER_MONTH - E;
+  const f = hours/24;
+  const boostedNormal = normalHours*f;
+  const offNormal = normalHours*(1-f);
+  const weightedSum = boostedNormal*tier0.mult + offNormal*1 + E*50;
+  const avgMult = (weightedSum/HOURS_PER_MONTH) * (1+badgePct/100);
+  return base0*avgMult;
+}
+
+function renderSRB(){
+  const enabled = els.srbEnabled.checked;
+  els.srbFields.style.display = enabled ? "flex" : "none";
+  if(!enabled){ els.srbResultField.style.display = "none"; return; }
+
+  const c = getComposition();
+  const hours = parseInt(els.hours.value);
+  const badgePct = parseFloat(els.badge.value);
+  const srbCount = Math.max(0, parseInt(els.srbCount.value)||0);
+  const srbHours = Math.max(0, parseInt(els.srbHours.value)||0);
+  const estimate = computeSRBEstimate(c, hours, badgePct, srbCount, srbHours);
+
+  if(estimate===null){ els.srbResultField.style.display = "none"; return; }
+  els.srbResultField.style.display = "flex";
+  els.srbResultLabel.textContent = "Estimation mensuelle réaliste (avec "+srbCount+" Super Rent Boost)";
+  els.srbResultValue.textContent = fmtEUR5(estimate);
+}
+
 function renderTierGrid(){
   const c = getComposition();
   const i0 = getTierIndex(Math.max(1,totalOf(c)));
@@ -550,6 +622,7 @@ function renderAll(){
   els.hoursVal.textContent = els.hours.value+"h/24h";
   renderSummary();
   renderVerdict();
+  renderSRB();
   renderTierGrid();
 }
 
@@ -558,9 +631,10 @@ function renderAll(){
   els[id].addEventListener("input", function(){ persistSettings(); renderAll(); });
   els[id].addEventListener("change", function(){ persistSettings(); renderAll(); });
 });
-["rCommon","rRare","rEpic","rLegendary"].forEach(function(id){
+["rCommon","rRare","rEpic","rLegendary","srbCount","srbHours"].forEach(function(id){
   els[id].addEventListener("input", function(){ persistSettings(); renderAll(); });
 });
+els.srbEnabled.addEventListener("change", function(){ persistSettings(); renderAll(); });
 
 renderAll();
 </script>
