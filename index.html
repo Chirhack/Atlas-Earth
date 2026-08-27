@@ -140,52 +140,34 @@
   }
   .rarity-field input:focus{outline:2px solid var(--accent); outline-offset:1px;}
 
-  .today-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:12px;}
-  @media (max-width:560px){.today-grid{grid-template-columns:1fr;}}
-  .today-grid .field{display:flex; flex-direction:column; gap:6px;}
-  .today-grid label{font-size:13px; font-weight:600;}
-  .today-grid input{
-    background:var(--surface-2); border:1px solid var(--line); border-radius:7px;
-    padding:10px 12px; font-size:16px; color:var(--ink); font-family:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace;
-    font-variant-numeric:tabular-nums; width:100%;
-  }
-  .today-grid input:focus{outline:2px solid var(--accent); outline-offset:1px;}
-
   .summary-row{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
   @media (max-width:560px){.summary-row{grid-template-columns:1fr;}}
-
-  .today-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px;}
-  button.primary{
-    background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 18px;
-    font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;
-  }
-  button.primary:hover{filter:brightness(1.08);}
-  button.ghost{
-    background:transparent; color:var(--ink-muted); border:1px solid var(--line); border-radius:8px;
-    padding:9px 14px; font-size:13px; cursor:pointer; font-family:inherit;
-  }
-  button.ghost:hover{color:var(--ink); border-color:var(--line-strong);}
-  .save-note{font-size:12.5px; color:var(--positive); font-weight:600;}
-
-  .delta-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
-  .delta-chip{
-    font-size:12px; padding:5px 10px; border-radius:6px; background:var(--surface-2);
-    color:var(--ink-muted); font-family:ui-monospace,monospace; font-variant-numeric:tabular-nums;
-  }
-  .delta-chip b{color:var(--positive);}
 
   /* Verdict */
   .verdict{border-radius:12px; padding:20px 22px; border:1px solid; display:flex; gap:14px; align-items:flex-start;}
   /* Opaque surface (not a translucent wash) so text stays legible regardless of the space background behind the card */
-  .verdict.buy, .verdict.buybig{border-color:var(--positive); background:var(--surface);}
-  .verdict.wait{border-color:var(--warn); background:var(--surface);}
+  .verdict.safe{border-color:var(--positive); background:var(--surface);}
+  .verdict.warn{border-color:var(--warn); background:var(--surface);}
+  .verdict.info{border-color:var(--line-strong); background:var(--surface);}
   .verdict .icon{font-size:24px; line-height:1.1; flex-shrink:0;}
   .verdict .body{min-width:0; flex:1;}
   .verdict h3{font-size:16.5px; margin:0 0 7px; font-family:"Iowan Old Style",Georgia,serif; font-weight:600;}
-  .verdict.buy h3, .verdict.buybig h3{color:var(--positive);}
-  .verdict.wait h3{color:var(--warn);}
+  .verdict.safe h3{color:var(--positive);}
+  .verdict.warn h3{color:var(--warn);}
+  .verdict.info h3{color:var(--ink);}
   .verdict p{margin:0; font-size:13.5px; color:var(--ink); line-height:1.55;}
   .verdict p+p{margin-top:7px; color:var(--ink-muted); font-size:13px;}
+
+  /* Catch-up indicator */
+  .catchup{border-radius:12px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start; margin-top:14px;}
+  .catchup.red{border-color:var(--negative); background-color:var(--surface); background-image:linear-gradient(var(--negative-soft), var(--negative-soft));}
+  .catchup.green{border-color:var(--positive); background-color:var(--surface); background-image:linear-gradient(var(--positive-soft), var(--positive-soft));}
+  .catchup .icon{font-size:20px; line-height:1.1; flex-shrink:0;}
+  .catchup .body{min-width:0; flex:1;}
+  .catchup h3{font-size:15px; margin:0 0 6px; font-family:"Iowan Old Style",Georgia,serif; font-weight:600;}
+  .catchup.red h3{color:var(--negative);}
+  .catchup.green h3{color:var(--positive);}
+  .catchup p{margin:0; font-size:13px; color:var(--ink); line-height:1.55;}
 
   .status-row{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
   @media (max-width:520px){.status-row{grid-template-columns:1fr;}}
@@ -194,8 +176,6 @@
   .status-chip .v{font-family:ui-monospace,monospace; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums;}
 
 
-  .delta-pos{color:var(--positive);}
-  .delta-neg{color:var(--negative);}
 
   /* Tier table */
   .tier-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px;}
@@ -296,12 +276,6 @@
 </script>
 <div class="page">
 
-  <header>
-    <p class="eyebrow">Atlas Earth · Journal</p>
-    <h1>Suivi quotidien &amp; décision d'achat</h1>
-    <p>Renseigne ta composition de parcelles par rareté, ton AB et tes dollars générés. L'outil calcule ton rendement exact et te dit s'il faut acheter maintenant ou attendre d'atteindre un seuil rentable.</p>
-  </header>
-
   <div class="card">
     <h2 class="ct">Paramètres de calcul</h2>
     <div class="settings">
@@ -315,6 +289,7 @@
       <div class="field">
         <label for="badge">Bonus badge</label>
         <select id="badge">
+          <option value="0">Badge 0 → +0%</option>
           <option value="5">Badge 1-10 → +5%</option>
           <option value="10">Badge 11-30 → +10%</option>
           <option value="15">Badge 31-60 → +15%</option>
@@ -326,13 +301,6 @@
   </div>
 
   <div class="card">
-    <h2 class="ct">Entrée du jour</h2>
-
-    <div class="readonly-field" style="margin-bottom:16px;">
-      <span><span class="tag">Date</span> &nbsp; <b id="todayDate">—</b></span>
-      <span style="font-size:11px;">non modifiable — toujours aujourd'hui</span>
-    </div>
-
     <div class="section-label">Tes parcelles, par rareté</div>
     <div class="rarity-grid">
       <div class="rarity-field common">
@@ -364,25 +332,6 @@
       <div class="readonly-field" style="border-color:var(--accent); background:var(--accent-soft);"><span class="tag">Revenu actuel — avec palier + badge + boost</span><b id="boostedIncomeDisplay" style="color:var(--accent);">0,00000 $/mois</b></div>
     </div>
 
-    <div class="section-label">Tes soldes</div>
-    <div class="today-grid">
-      <div class="field">
-        <label for="inAB">AB disponibles</label>
-        <input type="number" id="inAB" min="0" step="1">
-      </div>
-      <div class="field">
-        <label for="inDollars">Dollars générés (loyer accumulé, pas les AB)</label>
-        <input type="number" id="inDollars" min="0" step="0.0001">
-      </div>
-    </div>
-
-    <div class="delta-row" id="deltaRow"></div>
-
-    <div class="today-actions">
-      <button class="primary" id="saveBtn">Enregistrer aujourd'hui</button>
-      <button class="ghost" id="loadLastBtn">Reprendre le dernier jour</button>
-      <span class="save-note" id="saveNote"></span>
-    </div>
   </div>
 
   <div id="verdictCard"></div>
@@ -419,8 +368,7 @@ const RATE_PERSEC = { common: 0.0000000011, rare: 0.0000000016, epic: 0.00000000
 const RATE = { common: 0.0028512, rare: 0.0041472, epic: 0.0057024, legendary: 0.0114048 };
 const RATE_AVG_RANDOM_PURCHASE = 0.5*RATE.common + 0.3*RATE.rare + 0.15*RATE.epic + 0.05*RATE.legendary;
 
-const LS_LOG = "atlasEarthJournal_log_v2";
-const LS_SETTINGS = "atlasEarthJournal_settings_v2";
+const LS_SETTINGS = "atlasEarthJournal_settings_v3";
 
 function getTierIndex(n){
   for(let i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min && n<=TIERS[i].max) return i; }
@@ -434,29 +382,32 @@ function fmtEUR(x){ return (x||0).toLocaleString("fr-FR",{minimumFractionDigits:
 function fmtEUR5(x){ return (x||0).toLocaleString("fr-FR",{minimumFractionDigits:5,maximumFractionDigits:5})+" $/mois"; }
 function fmtPerSec(x){ return "$"+(x||0).toLocaleString("fr-FR",{minimumFractionDigits:10,maximumFractionDigits:10})+"/s"; }
 function fmtNum(x){ return Math.round(x||0).toLocaleString("fr-FR"); }
-function todayISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function todayFR(){ const d=new Date(); return d.toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"}); }
 
-function loadLog(){ try{ return JSON.parse(localStorage.getItem(LS_LOG))||[]; }catch(e){ return []; } }
-function saveLog(log){ localStorage.setItem(LS_LOG, JSON.stringify(log)); }
 function loadSettings(){ try{ return JSON.parse(localStorage.getItem(LS_SETTINGS))||{}; }catch(e){ return {}; } }
 function saveSettings(s){ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }
 
 const els = {};
 [
-  "hours","hoursVal","badge","todayDate",
+  "hours","hoursVal","badge",
   "rCommon","rRare","rEpic","rLegendary","totalParcels","baseRateDisplay","baseRatePerSec","boostedIncomeDisplay",
-  "inAB","inDollars","deltaRow","saveBtn","loadLastBtn","saveNote",
   "verdictCard","tierGrid"
 ].forEach(id => els[id] = document.getElementById(id));
 
-// ---- init settings ----
+// ---- init settings (persisted automatically, no manual save needed) ----
 const savedSettings = loadSettings();
 if(savedSettings.hours!==undefined) els.hours.value = savedSettings.hours;
 if(savedSettings.badge!==undefined) els.badge.value = savedSettings.badge;
-els.todayDate.textContent = todayFR();
+if(savedSettings.rCommon!==undefined) els.rCommon.value = savedSettings.rCommon;
+if(savedSettings.rRare!==undefined) els.rRare.value = savedSettings.rRare;
+if(savedSettings.rEpic!==undefined) els.rEpic.value = savedSettings.rEpic;
+if(savedSettings.rLegendary!==undefined) els.rLegendary.value = savedSettings.rLegendary;
 
-function persistSettings(){ saveSettings({hours:els.hours.value, badge:els.badge.value}); }
+function persistSettings(){
+  saveSettings({
+    hours: els.hours.value, badge: els.badge.value,
+    rCommon: els.rCommon.value, rRare: els.rRare.value, rEpic: els.rEpic.value, rLegendary: els.rLegendary.value
+  });
+}
 
 function getComposition(){
   return {
@@ -469,64 +420,102 @@ function getComposition(){
 function totalOf(c){ return c.common+c.rare+c.epic+c.legendary; }
 function baseIncomeOf(c){ return c.common*RATE.common + c.rare*RATE.rare + c.epic*RATE.epic + c.legendary*RATE.legendary; }
 
-// ---- verdict logic ----
-function computeVerdict(c, AB, hours, badgePct){
+// ---- verdict logic (based only on parcels held — no AB input needed) ----
+function computeVerdict(c, hours, badgePct){
   const N0 = totalOf(c);
+  if(N0===0){
+    return { type:"info", icon:"ℹ️", title:"Indique ta composition de parcelles",
+      html:"Renseigne tes parcelles ci-dessus pour voir ta marge de sécurité avant le prochain palier et le seuil de rentabilité pour franchir." };
+  }
   const base0 = baseIncomeOf(c);
-  const buyable = Math.floor(AB/100);
-  const i0 = getTierIndex(Math.max(1,N0));
+  const i0 = getTierIndex(N0);
   const tier0 = TIERS[i0];
   const mult0 = multiplierFor(tier0.mult, badgePct, hours);
   const income0 = base0 * mult0;
   const hasNextTier = i0 < TIERS.length-1;
-  const N1 = hasNextTier ? tier0.max+1 : null;
-  const nextTier = hasNextTier ? TIERS[i0+1] : null;
-  const maxReach = N0 + buyable;
 
-  if(N0===0 && buyable===0){
-    return { type:"wait", icon:"ℹ️", title:"Pas encore de parcelles renseignées",
-      html:"Indique ta composition de parcelles et ton AB disponible pour obtenir une recommandation." };
+  if(!hasNextTier){
+    return { type:"safe", icon:"✅", title:"Dernier palier atteint (x"+tier0.mult+")",
+      html:"Il n'y a plus de seuil à surveiller — chaque parcelle achetée reste au même multiplicateur.<br><br>Revenu actuel : <b>"+fmtEUR(income0)+"</b>/mois." };
   }
 
-  if(!hasNextTier || maxReach < N1){
-    const incomeAfter = income0 + buyable*RATE_AVG_RANDOM_PURCHASE*mult0;
-    return {
-      type:"buy", icon:"✅", title:"Achète tout — aucun risque de franchissement",
-      html:"Avec "+buyable+" parcelle(s) achetable(s), tu restes dans le palier <b>x"+tier0.mult+"</b>"+(hasNextTier ? " (le seuil suivant est à "+N1+" parcelles)" : " (dernier palier)")+". Chaque parcelle achetée est un gain net.<br><br>Revenu actuel : <b>"+fmtEUR(income0)+"</b>/mois → après achat : <b>"+fmtEUR(incomeAfter)+"</b>/mois."
-    };
-  }
+  const nextTier = TIERS[i0+1];
+  const N1 = tier0.max+1;
+  const safeRemaining = N1-1-N0;
   const f = hours/24;
   const ratio = (f*tier0.mult+(1-f)) / (f*nextTier.mult+(1-f));
-  const Nstar = Math.ceil(N0 * ratio);
+  const Nstar = Math.ceil(N0*ratio);
+  const moreNeeded = Math.max(0, Nstar-N0);
+  const abNeeded = moreNeeded*100;
   const multAfter = multiplierFor(nextTier.mult, badgePct, hours);
-  const incomeAtMaxReach = (base0 + buyable*RATE_AVG_RANDOM_PURCHASE) * multAfter;
-  const tilesToN1 = N1-1-N0;
-  const incomeAtN1minus1 = (base0 + Math.max(0,tilesToN1)*RATE_AVG_RANDOM_PURCHASE) * mult0;
+  const incomeAtNstar = (base0 + moreNeeded*RATE_AVG_RANDOM_PURCHASE) * multAfter;
+  const closeCall = safeRemaining <= 10;
 
-  if(maxReach >= Nstar){
-    return {
-      type:"buybig", icon:"🚀", title:"Achète en grand — le franchissement est rentable",
-      html:"Tes "+buyable+" parcelles achetables t'emmènent à "+fmtNum(maxReach)+" tuiles, palier <b>x"+nextTier.mult+"</b>. Ça dépasse le seuil de rentabilité ("+fmtNum(Nstar)+" tuiles).<br><br>Revenu actuel : <b>"+fmtEUR(income0)+"</b>/mois → après franchissement : <b>"+fmtEUR(incomeAtMaxReach)+"</b>/mois."
-    };
+  let html = "Tu peux acheter jusqu'à <b>"+fmtNum(safeRemaining)+" parcelle(s)</b> de plus sans quitter le palier <b>x"+tier0.mult+"</b> (jusqu'à "+fmtNum(N1-1)+" tuiles au total).";
+  html += "<br><br>Pour que passer au palier <b>x"+nextTier.mult+"</b> soit rentable, il te faut atteindre <b>"+fmtNum(Nstar)+" parcelles</b> au total"
+    + (moreNeeded>0 ? " — soit encore <b>"+fmtNum(moreNeeded)+"</b> de plus (~"+fmtNum(abNeeded)+" AB). Revenu visé : <b>"+fmtEUR(incomeAtNstar)+"</b>/mois." : ", ce que tu as déjà atteint.");
+  if(closeCall){
+    html = "<b>N'achète pas juste 1 ou 2 parcelles de plus</b> sans viser directement le seuil rentable complet — ça ferait baisser ton revenu.<br><br>" + html;
   }
-  const abNeeded = (Nstar-N0)*100;
+
   return {
-    type:"wait", icon:"⚠️", title:"N'achète pas tout maintenant — stocke pour franchir en grand",
-    html:"Dépenser tes "+buyable+" parcelles t'emmène à "+fmtNum(maxReach)+" tuiles (palier x"+nextTier.mult+") — mais il en faut au moins <b>"+fmtNum(Nstar)+"</b> dans ce palier pour que ce soit rentable.<br><br>Reste à <b>"+fmtNum(N1-1)+" tuiles</b> (x"+tier0.mult+", "+fmtEUR(incomeAtN1minus1)+"/mois) et <b>stocke tes AB</b> jusqu'à en avoir <b>"+fmtNum(abNeeded)+"</b> de plus — dépense-les alors d'un coup pour atteindre "+fmtNum(Nstar)+"+ tuiles."
+    type: closeCall ? "warn" : "safe",
+    icon: closeCall ? "⚠️" : "✅",
+    title: closeCall ? "Tu approches un changement de palier" : "Marge de sécurité avant le prochain palier",
+    html: html
   };
+}
+
+// ---- catch-up indicator: did crossing into the current tier already pay off? ----
+function computeCatchup(c, hours, badgePct){
+  const N0 = totalOf(c);
+  if(N0===0) return null;
+  const i0 = getTierIndex(N0);
+  if(i0===0) return null; // first tier, nothing to catch up from
+
+  const base0 = baseIncomeOf(c);
+  const avgRate = base0/N0;
+  const tier0 = TIERS[i0];
+  const prevTier = TIERS[i0-1];
+  const prevMax = prevTier.max;
+  const mult0 = multiplierFor(tier0.mult, badgePct, hours);
+  const income0 = base0*mult0;
+  const multPrevMax = multiplierFor(prevTier.mult, badgePct, hours);
+  const incomePrevMaxEstimated = avgRate*prevMax*multPrevMax;
+
+  const f = hours/24;
+  const ratio = (f*prevTier.mult+(1-f)) / (f*tier0.mult+(1-f));
+  const NstarCross = Math.ceil(prevMax*ratio);
+
+  if(N0 < NstarCross){
+    const missing = NstarCross-N0;
+    const shortfall = Math.max(0, incomePrevMaxEstimated-income0);
+    return { status:"red", icon:"🔴", title:"Manque à gagner sur ce palier",
+      html:"Tu as franchi le seuil de "+fmtNum(prevMax)+" parcelles avant d'être prêt — il te manque encore <b>"+fmtNum(missing)+" parcelle(s)</b> pour au moins retrouver le revenu que tu avais avant (estimé à "+fmtEUR(incomePrevMaxEstimated)+"/mois).<br>Manque à gagner actuel : <b>"+fmtEUR(shortfall)+"</b>/mois." };
+  }
+  return { status:"green", icon:"🟢", title:"Palier rattrapé",
+    html:"Tu as dépassé le seuil d'équilibre de ce palier (atteint dès "+fmtNum(NstarCross)+" parcelles) — le franchissement est maintenant rentable par rapport à ton ancien palier." };
 }
 
 function renderVerdict(){
   const c = getComposition();
-  const AB = Math.max(0, parseInt(els.inAB.value)||0);
   const hours = parseInt(els.hours.value);
   const badgePct = parseFloat(els.badge.value);
-  const v = computeVerdict(c, AB, hours, badgePct);
-  els.verdictCard.innerHTML =
+  const v = computeVerdict(c, hours, badgePct);
+  let html =
     '<div class="verdict '+v.type+'">'+
       '<div class="icon">'+v.icon+'</div>'+
       '<div class="body"><h3>'+v.title+'</h3><p>'+v.html+'</p></div>'+
     '</div>';
+  const cu = computeCatchup(c, hours, badgePct);
+  if(cu){
+    html +=
+      '<div class="catchup '+cu.status+'">'+
+        '<div class="icon">'+cu.icon+'</div>'+
+        '<div class="body"><h3>'+cu.title+'</h3><p>'+cu.html+'</p></div>'+
+      '</div>';
+  }
+  els.verdictCard.innerHTML = html;
 }
 
 function baseIncomePerSecOf(c){ return c.common*RATE_PERSEC.common + c.rare*RATE_PERSEC.rare + c.epic*RATE_PERSEC.epic + c.legendary*RATE_PERSEC.legendary; }
@@ -548,25 +537,6 @@ function renderSummary(){
   els.boostedIncomeDisplay.textContent = fmtEUR5(base * mult) + " (x" + mult.toFixed(2) + ")";
 }
 
-function renderDeltaPreview(){
-  const log = loadLog();
-  els.deltaRow.innerHTML = "";
-  if(log.length===0) return;
-  const last = log[log.length-1];
-  const c = getComposition();
-  const N0 = totalOf(c);
-  const AB = parseFloat(els.inAB.value)||0;
-  const D = parseFloat(els.inDollars.value)||0;
-  const lastTotal = last.common+last.rare+last.epic+last.legendary;
-  const dP = N0-lastTotal, dA = AB-last.ab, dD = D-last.dollars;
-  function chip(label,val,isEUR){
-    const cls = val>0?"delta-pos":(val<0?"delta-neg":"");
-    const sign = val>0?"+":"";
-    return '<span class="delta-chip">'+label+' : <b class="'+cls+'">'+sign+(isEUR?fmtEUR(val):fmtNum(val))+'</b></span>';
-  }
-  els.deltaRow.innerHTML = "depuis le "+last.date+" : " + chip("parcelles",dP,false) + chip("AB",dA,false) + chip("$",dD,true);
-}
-
 function renderTierGrid(){
   const c = getComposition();
   const i0 = getTierIndex(Math.max(1,totalOf(c)));
@@ -580,7 +550,6 @@ function renderAll(){
   els.hoursVal.textContent = els.hours.value+"h/24h";
   renderSummary();
   renderVerdict();
-  renderDeltaPreview();
   renderTierGrid();
 }
 
@@ -589,58 +558,9 @@ function renderAll(){
   els[id].addEventListener("input", function(){ persistSettings(); renderAll(); });
   els[id].addEventListener("change", function(){ persistSettings(); renderAll(); });
 });
-["rCommon","rRare","rEpic","rLegendary","inAB","inDollars"].forEach(function(id){
-  els[id].addEventListener("input", function(){ renderSummary(); renderVerdict(); renderDeltaPreview(); renderTierGrid(); });
+["rCommon","rRare","rEpic","rLegendary"].forEach(function(id){
+  els[id].addEventListener("input", function(){ persistSettings(); renderAll(); });
 });
-
-els.saveBtn.addEventListener("click", function(){
-  const date = todayISO();
-  const c = getComposition();
-  const entry = {
-    date: date,
-    common: c.common, rare: c.rare, epic: c.epic, legendary: c.legendary,
-    ab: Math.max(0, parseInt(els.inAB.value)||0),
-    dollars: Math.max(0, parseFloat(els.inDollars.value)||0)
-  };
-  let log = loadLog();
-  const existingIdx = log.findIndex(function(e){ return e.date===date; });
-  if(existingIdx>=0){ log[existingIdx]=entry; } else { log.push(entry); }
-  log.sort(function(a,b){ return a.date.localeCompare(b.date); });
-  saveLog(log);
-  els.saveNote.textContent = "Enregistré ✓";
-  setTimeout(function(){ els.saveNote.textContent=""; }, 2500);
-  renderAll();
-});
-
-els.loadLastBtn.addEventListener("click", function(){
-  const log = loadLog();
-  if(log.length===0) return;
-  const last = log[log.length-1];
-  els.rCommon.value = last.common;
-  els.rRare.value = last.rare;
-  els.rEpic.value = last.epic;
-  els.rLegendary.value = last.legendary;
-  els.inAB.value = last.ab;
-  els.inDollars.value = last.dollars;
-  renderSummary(); renderVerdict(); renderDeltaPreview(); renderTierGrid();
-});
-
-// ---- first load: prefill from last entry if it exists ----
-(function initForm(){
-  const log = loadLog();
-  if(log.length>0){
-    const last = log[log.length-1];
-    els.rCommon.value = last.common;
-    els.rRare.value = last.rare;
-    els.rEpic.value = last.epic;
-    els.rLegendary.value = last.legendary;
-    els.inAB.value = last.ab;
-    els.inDollars.value = last.dollars;
-  } else {
-    els.rCommon.value = 0; els.rRare.value = 0; els.rEpic.value = 0; els.rLegendary.value = 0;
-    els.inAB.value = 0; els.inDollars.value = 0;
-  }
-})();
 
 renderAll();
 </script>
