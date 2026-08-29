@@ -287,6 +287,15 @@
 </script>
 <div class="page">
 
+  <div class="card" id="installBanner" style="display:none; gap:12px; align-items:center;">
+    <div style="flex:1; min-width:0;">
+      <div class="section-label" style="margin:0 0 4px;">Installer l'app</div>
+      <p id="installText" style="margin:0; font-size:13px; color:var(--ink-muted); line-height:1.5;"></p>
+    </div>
+    <button id="installBtn" type="button" style="display:none; flex-shrink:0; background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer;">Installer</button>
+    <button id="installDismiss" type="button" aria-label="Fermer" style="flex-shrink:0; background:transparent; border:none; color:var(--ink-muted); font-size:20px; line-height:1; cursor:pointer; padding:4px 8px;">×</button>
+  </div>
+
   <div class="card">
     <h2 class="ct">Paramètres de calcul</h2>
     <div class="settings">
@@ -637,6 +646,49 @@ function renderAll(){
 els.srbEnabled.addEventListener("change", function(){ persistSettings(); renderAll(); });
 
 renderAll();
+
+// ---- install banner: Android/Chrome gets a real "Installer" button (beforeinstallprompt),
+// iOS Safari never fires that event so we show the manual Share > "Sur l'écran d'accueil" steps ----
+(function(){
+  const LS_INSTALL_DISMISSED = "ae_install_dismissed_v1";
+  const banner = document.getElementById("installBanner");
+  const text = document.getElementById("installText");
+  const btn = document.getElementById("installBtn");
+  const dismissBtn = document.getElementById("installDismiss");
+
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if(isStandalone || localStorage.getItem(LS_INSTALL_DISMISSED) === "1"){ return; }
+
+  let deferredPrompt = null;
+
+  if(isIOS){
+    text.textContent = "Appuie sur Partage (⬆️) puis « Sur l'écran d'accueil » pour installer l'app.";
+    banner.style.display = "flex";
+  } else {
+    window.addEventListener("beforeinstallprompt", function(e){
+      e.preventDefault();
+      deferredPrompt = e;
+      text.textContent = "Installe l'app sur ton téléphone pour y accéder en un tap.";
+      btn.style.display = "inline-block";
+      banner.style.display = "flex";
+    });
+  }
+
+  btn.addEventListener("click", async function(){
+    if(!deferredPrompt) return;
+    btn.disabled = true;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    banner.style.display = "none";
+  });
+
+  dismissBtn.addEventListener("click", function(){
+    localStorage.setItem(LS_INSTALL_DISMISSED, "1");
+    banner.style.display = "none";
+  });
+})();
 </script>
 </body>
 </html>
